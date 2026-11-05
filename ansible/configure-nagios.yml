@@ -1,0 +1,8 @@
+---
+# Standalone Playbook: Reconfigure Nagios Core Monitoring
+- name: Configure Nagios Monitoring Server
+  hosts: monitoring_servers
+  gather_facts: yes
+  become: yes
+  roles:
+    - nagios_server

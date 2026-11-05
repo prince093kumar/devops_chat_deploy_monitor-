@@ -1,0 +1,27 @@
+# AWS Region
+aws_region = "us-east-1"
+
+# Project naming prefix
+project_name = "microchat-devops"
+environment  = "production"
+
+# EC2 Instance sizing
+# App Server runs 7 containers (Mongo, Redis, Auth, Chat, Notification, Gateway, Frontend)
+app_instance_type        = "t3.medium"
+monitoring_instance_type = "t3.micro"
+
+# EBS Volume sizes in GB
+app_volume_size        = 25
+monitoring_volume_size = 15
+
+# SSH Key Pair configuration:
+# Option 1 (Default): Leave key_name and public_key_path empty ("").
+# Terraform will automatically generate an RSA key pair and write it to ../ansible/id_rsa_devops.
+key_name        = ""
+public_key_path = ""
+
+# Option 2: Provide an existing AWS key pair name created in AWS console:
+# key_name = "my-aws-key"
+
+# Restrict SSH CIDR block (default is unrestricted for testing/demo)
+allowed_ssh_cidr = ["0.0.0.0/0"]

@@ -1,0 +1,11 @@
+---
+# Handlers for nagios_server
+- name: restart apache2
+  ansible.builtin.service:
+    name: apache2
+    state: restarted
+
+- name: restart nagios4
+  ansible.builtin.service:
+    name: nagios4
+    state: restarted

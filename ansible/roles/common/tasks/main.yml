@@ -1,0 +1,75 @@
+---
+# Common tasks executed on both App and Monitoring nodes
+
+- name: Wait for cloud-init / apt locks to clear
+  ansible.builtin.raw: |
+    while fuser /var/lib/dpkg/lock >/dev/null 2>&1 || fuser /var/lib/apt/lists/lock >/dev/null 2>&1 || fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; do
+      echo "Waiting for other apt process to finish..."
+      sleep 3
+    done
+  changed_when: false
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: yes
+    cache_valid_time: 3600
+
+- name: Install baseline system utilities
+  ansible.builtin.apt:
+    name:
+      - curl
+      - wget
+      - git
+      - unzip
+      - htop
+      - net-tools
+      - software-properties-common
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - ufw
+      - jq
+    state: present
+
+- name: Check if swapfile exists
+  ansible.builtin.stat:
+    path: /swapfile
+  register: swap_stat
+  when: configure_swap | default(true)
+
+- name: Create 2GB swapfile to prevent OOM during builds
+  ansible.builtin.command: fallocate -l 2G /swapfile
+  when:
+    - configure_swap | default(true)
+    - not swap_stat.stat.exists
+
+- name: Set permissions on swapfile
+  ansible.builtin.file:
+    path: /swapfile
+    owner: root
+    group: root
+    mode: '0600'
+  when:
+    - configure_swap | default(true)
+    - not swap_stat.stat.exists
+
+- name: Format swapfile
+  ansible.builtin.command: mkswap /swapfile
+  when:
+    - configure_swap | default(true)
+    - not swap_stat.stat.exists
+
+- name: Enable swapfile
+  ansible.builtin.command: swapon /swapfile
+  when:
+    - configure_swap | default(true)
+    - not swap_stat.stat.exists
+
+- name: Persist swap in /etc/fstab
+  ansible.posix.mount:
+    name: none
+    src: /swapfile
+    fstype: swap
+    opts: sw
+    state: present
+  when: configure_swap | default(true)

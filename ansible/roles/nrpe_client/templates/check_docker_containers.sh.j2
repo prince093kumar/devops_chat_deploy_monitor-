@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# ==============================================================================
+# Nagios NRPE Plugin: Check Chat Microservice Containers
+# ==============================================================================
+
+REQUIRED_CONTAINERS=("chat_mongodb" "chat_redis" "auth_service" "chat_service" "notification_service" "api_gateway" "chat_client")
+MISSING=()
+UNHEALTHY=()
+
+for c in "${REQUIRED_CONTAINERS[@]}"; do
+    STATUS=$(docker inspect --format '{{.State.Status}}' "$c" 2>/dev/null)
+    if [ $? -ne 0 ] || [ -z "$STATUS" ]; then
+        MISSING+=("$c")
+    elif [ "$STATUS" != "running" ]; then
+        UNHEALTHY+=("$c ($STATUS)")
+    fi
+done
+
+if [ ${#MISSING[@]} -ne 0 ]; then
+    echo "CRITICAL - Missing microservice containers: ${MISSING[*]}"
+    exit 2
+fi
+
+if [ ${#UNHEALTHY[@]} -ne 0 ]; then
+    echo "WARNING - Containers not running: ${UNHEALTHY[*]}"
+    exit 1
+fi
+
+TOTAL=${#REQUIRED_CONTAINERS[@]}
+echo "OK - All $TOTAL chat microservice containers are running healthy (${REQUIRED_CONTAINERS[*]})"
+exit 0

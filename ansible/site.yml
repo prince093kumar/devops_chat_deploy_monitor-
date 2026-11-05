@@ -1,0 +1,53 @@
+---
+# ==============================================================================
+# Master Ansible Playbook: Microservices Chat App Deployment & Nagios Monitoring
+# Course: DevOps Advance Config Management | B.Tech Semester 7
+# ==============================================================================
+
+# Play 1: Baseline system configuration on all EC2 instances
+- name: "Phase 1: Baseline Provisioning and Common Configuration"
+  hosts: all
+  gather_facts: yes
+  become: yes
+  roles:
+    - common
+
+# Play 2: Docker, App Deployment, and NRPE Client on App Server
+- name: "Phase 2: Deploy Containerized Chat Microservices & NRPE Client"
+  hosts: app_servers
+  gather_facts: yes
+  become: yes
+  roles:
+    - docker
+    - app_deployment
+    - nrpe_client
+
+# Play 3: Nagios Core Server Configuration on Monitoring Server
+- name: "Phase 3: Configure Nagios Core Monitoring Server"
+  hosts: monitoring_servers
+  gather_facts: yes
+  become: yes
+  roles:
+    - nagios_server
+
+# Play 4: Summary and Endpoints Verification
+- name: "Phase 4: Deployment Summary and Access Endpoints"
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Display Access Information
+      ansible.builtin.debug:
+        msg:
+          - "=============================================================================="
+          - "🚀 DEVOPS AUTOMATION DEPLOYMENT COMPLETE!"
+          - "=============================================================================="
+          - "💬 React Frontend Web Client : http://{{ hostvars['app-server']['ansible_host'] }}:3000"
+          - "🌐 Central API Gateway       : http://{{ hostvars['app-server']['ansible_host'] }}:5000/health"
+          - "📊 Nagios Monitoring Web UI  : http://{{ hostvars['monitoring-server']['ansible_host'] }}/nagios4/"
+          - "👤 Nagios Admin Username     : {{ hostvars['monitoring-server']['nagios_admin_user'] | default('nagiosadmin') }}"
+          - "🔑 Nagios Admin Password     : {{ hostvars['monitoring-server']['nagios_admin_password'] | default('Devops@2026') }}"
+          - "=============================================================================="
+          - "Run './scripts/test_endpoints.sh' to verify all microservice endpoints."
+          - "Run './scripts/simulate_failure.sh' to test Nagios failure detection."
+          - "=============================================================================="

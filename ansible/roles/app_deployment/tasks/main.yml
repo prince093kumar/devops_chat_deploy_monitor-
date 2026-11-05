@@ -1,0 +1,61 @@
+---
+# Deployment of Microservices Chat Application
+
+- name: Ensure chat app deployment directory exists
+  ansible.builtin.file:
+    path: "{{ app_dest_dir }}"
+    state: directory
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0755'
+
+- name: Clone or pull chat application source repository
+  ansible.builtin.git:
+    repo: "{{ app_repo_url }}"
+    dest: "{{ app_dest_dir }}"
+    version: "{{ app_repo_branch }}"
+    force: yes
+  become_user: "{{ app_user }}"
+
+- name: Deploy dynamic docker-compose override for current server IP and port exposure
+  ansible.builtin.template:
+    src: docker-compose.override.yml.j2
+    dest: "{{ app_dest_dir }}/docker-compose.override.yml"
+    owner: "{{ app_user }}"
+    group: "{{ app_group }}"
+    mode: '0644'
+
+- name: Build and launch all microservices containers
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build
+    chdir: "{{ app_dest_dir }}"
+  become_user: "{{ app_user }}"
+  register: compose_up_result
+  changed_when: "'Created' in compose_up_result.stdout or 'Starting' in compose_up_result.stdout or 'Recreated' in compose_up_result.stdout or 'Building' in compose_up_result.stdout"
+
+- name: Wait for API Gateway to become responsive on port 5000
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ gateway_port }}/health"
+    status_code: 200
+  register: gateway_health
+  until: gateway_health.status == 200
+  retries: 30
+  delay: 4
+
+- name: Wait for React Frontend client to become responsive on port 3000
+  ansible.builtin.uri:
+    url: "http://127.0.0.1:{{ frontend_port }}"
+    status_code: 200
+  register: frontend_health
+  until: frontend_health.status == 200
+  retries: 20
+  delay: 3
+
+- name: Capture running Docker containers status
+  ansible.builtin.command: docker ps --format "table {{ '{{' }}.Names{{ '}}' }}\t{{ '{{' }}.Status{{ '}}' }}\t{{ '{{' }}.Ports{{ '}}' }}"
+  register: docker_containers
+  changed_when: false
+
+- name: Display running microservices
+  ansible.builtin.debug:
+    var: docker_containers.stdout_lines

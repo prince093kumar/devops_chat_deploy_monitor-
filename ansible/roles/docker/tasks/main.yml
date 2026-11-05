@@ -1,0 +1,62 @@
+---
+# Docker and Docker Compose installation on Ubuntu
+
+- name: Create directory for Docker keyrings
+  ansible.builtin.file:
+    path: /etc/apt/keyrings
+    state: directory
+    mode: '0755'
+
+- name: Download Docker official GPG key
+  ansible.builtin.get_url:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    dest: /etc/apt/keyrings/docker.asc
+    mode: '0644'
+
+- name: Add Docker official repository to APT sources
+  ansible.builtin.apt_repository:
+    repo: "deb [arch=amd64 signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Update apt cache after adding Docker repo
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Install Docker Engine and Compose plugin
+  ansible.builtin.apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-buildx-plugin
+      - docker-compose-plugin
+    state: present
+
+- name: Ensure Docker service is started and enabled
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: yes
+
+- name: Add ubuntu user to docker group
+  ansible.builtin.user:
+    name: "{{ app_user | default('ubuntu') }}"
+    groups: docker
+    append: yes
+
+- name: Verify Docker version
+  ansible.builtin.command: docker --version
+  register: docker_ver
+  changed_when: false
+
+- name: Verify Docker Compose version
+  ansible.builtin.command: docker compose version
+  register: compose_ver
+  changed_when: false
+
+- name: Output installed Docker details
+  ansible.builtin.debug:
+    msg:
+      - "{{ docker_ver.stdout }}"
+      - "{{ compose_ver.stdout }}"

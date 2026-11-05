@@ -1,0 +1,41 @@
+---
+# NRPE Client Setup on Application Server
+
+- name: Install NRPE server and standard Nagios monitoring plugins
+  ansible.builtin.apt:
+    name:
+      - nagios-nrpe-server
+      - nagios-plugins
+      - monitoring-plugins
+      - nagios-plugins-basic
+      - nagios-plugins-standard
+    state: present
+
+- name: Add nagios user to docker group to inspect microservice containers
+  ansible.builtin.user:
+    name: nagios
+    groups: docker
+    append: yes
+
+- name: Deploy custom Docker container health check plugin script
+  ansible.builtin.template:
+    src: check_docker_containers.sh.j2
+    dest: /usr/lib/nagios/plugins/check_docker_containers.sh
+    owner: nagios
+    group: nagios
+    mode: '0755'
+
+- name: Configure NRPE daemon (/etc/nagios/nrpe.cfg)
+  ansible.builtin.template:
+    src: nrpe.cfg.j2
+    dest: /etc/nagios/nrpe.cfg
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart nrpe
+
+- name: Ensure nagios-nrpe-server is running and enabled
+  ansible.builtin.service:
+    name: nagios-nrpe-server
+    state: started
+    enabled: yes

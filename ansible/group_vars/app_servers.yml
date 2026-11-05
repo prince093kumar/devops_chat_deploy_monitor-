@@ -1,0 +1,24 @@
+---
+# Application Server Variables
+app_user: "ubuntu"
+app_group: "ubuntu"
+app_repo_url: "https://github.com/prince093kumar/winter_pep_final_project.git"
+app_repo_branch: "main"
+app_dest_dir: "/home/ubuntu/chat-app"
+
+# Microservices Ports
+gateway_port: 5000
+frontend_port: 3000
+auth_service_port: 5001
+chat_service_port: 5002
+notification_service_port: 5003
+mongo_port: 27017
+redis_port: 6379
+
+# JWT & Database Secrets
+jwt_secret: "supersecretkey"
+jwt_expires_in: "24h"
+
+# NRPE configuration on App Server
+nrpe_port: 5666
+nrpe_allowed_hosts: "127.0.0.1,::1,{{ monitoring_server_public_ip }},{{ monitoring_server_private_ip | default('') }}"

@@ -1,0 +1,8 @@
+---
+# Standalone Playbook: Re-deploy or update Chat Microservices
+- name: Deploy Chat Microservices Application
+  hosts: app_servers
+  gather_facts: yes
+  become: yes
+  roles:
+    - app_deployment

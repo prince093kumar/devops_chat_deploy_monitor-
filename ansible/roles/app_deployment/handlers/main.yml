@@ -1,0 +1,7 @@
+---
+# Handlers for app_deployment role
+- name: restart chat microservices
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml restart
+    chdir: "{{ app_dest_dir }}"
+  become_user: "{{ app_user }}"

@@ -1,0 +1,6 @@
+---
+# Handlers for nrpe_client
+- name: restart nrpe
+  ansible.builtin.service:
+    name: nagios-nrpe-server
+    state: restarted

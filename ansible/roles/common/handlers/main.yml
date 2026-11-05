@@ -1,0 +1,6 @@
+---
+# Common handlers
+- name: restart systemd-timesyncd
+  ansible.builtin.service:
+    name: systemd-timesyncd
+    state: restarted

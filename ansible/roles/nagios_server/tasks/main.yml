@@ -1,0 +1,138 @@
+---
+# Nagios 4 Core Server Installation and Configuration
+
+- name: Enable Ubuntu Universe repository
+  ansible.builtin.apt_repository:
+    repo: "deb http://archive.ubuntu.com/ubuntu {{ ansible_distribution_release }} universe"
+    state: present
+
+- name: Update apt cache after enabling universe repo
+  ansible.builtin.apt:
+    update_cache: yes
+
+- name: Preseed nagios4 admin password debconf for unattended installation
+  ansible.builtin.debconf:
+    name: nagios4-common
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.vtype }}"
+  loop:
+    - { question: 'nagios4/adminpassword', value: '{{ nagios_admin_password }}', vtype: 'password' }
+    - { question: 'nagios4/adminpassword-repeat', value: '{{ nagios_admin_password }}', vtype: 'password' }
+
+- name: Install Apache, PHP, Nagios 4, and Monitoring Plugins
+  ansible.builtin.apt:
+    name:
+      - apache2
+      - apache2-utils
+      - php
+      - libapache2-mod-php
+      - nagios4
+      - nagios-plugins
+      - nagios-nrpe-plugin
+      - monitoring-plugins
+      - nagios-plugins-basic
+      - nagios-plugins-standard
+    state: present
+  environment:
+    DEBIAN_FRONTEND: noninteractive
+
+- name: Configure nagiosadmin HTTP Basic Auth password
+  ansible.builtin.command:
+    cmd: "htpasswd -b -c /etc/nagios4/htpasswd.users {{ nagios_admin_user }} {{ nagios_admin_password }}"
+  no_log: true
+
+- name: Set permissions on Nagios htpasswd file
+  ansible.builtin.file:
+    path: /etc/nagios4/htpasswd.users
+    owner: nagios
+    group: www-data
+    mode: '0640'
+
+- name: Enable Apache cgi and rewrite modules
+  community.general.apache2_module:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - cgi
+    - rewrite
+  notify: restart apache2
+
+- name: Enable Nagios Apache configuration
+  ansible.builtin.command: a2enconf nagios4
+  register: a2enconf_result
+  changed_when: "'already enabled' not in a2enconf_result.stdout"
+  notify: restart apache2
+
+- name: Deploy Apache root redirect configuration
+  ansible.builtin.template:
+    src: apache_nagios_redirect.conf.j2
+    dest: /etc/apache2/conf-available/nagios-redirect.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart apache2
+
+- name: Enable Apache root redirect configuration
+  ansible.builtin.command: a2enconf nagios-redirect
+  register: a2enconf_redirect
+  changed_when: "'already enabled' not in a2enconf_redirect.stdout"
+  notify: restart apache2
+
+- name: Deploy Nagios commands configuration
+  ansible.builtin.template:
+    src: commands.cfg.j2
+    dest: /etc/nagios4/conf.d/microchat_commands.cfg
+    owner: nagios
+    group: nagios
+    mode: '0644'
+  notify: restart nagios4
+
+- name: Deploy Nagios hosts configuration
+  ansible.builtin.template:
+    src: hosts.cfg.j2
+    dest: /etc/nagios4/conf.d/microchat_hosts.cfg
+    owner: nagios
+    group: nagios
+    mode: '0644'
+  notify: restart nagios4
+
+- name: Deploy Nagios services configuration
+  ansible.builtin.template:
+    src: services.cfg.j2
+    dest: /etc/nagios4/conf.d/microchat_services.cfg
+    owner: nagios
+    group: nagios
+    mode: '0644'
+  notify: restart nagios4
+
+- name: Deploy Nagios contacts configuration
+  ansible.builtin.template:
+    src: contacts.cfg.j2
+    dest: /etc/nagios4/conf.d/microchat_contacts.cfg
+    owner: nagios
+    group: nagios
+    mode: '0644'
+  notify: restart nagios4
+
+- name: Verify Nagios 4 configuration syntax
+  ansible.builtin.command: nagios4 -v /etc/nagios4/nagios.cfg
+  register: nagios_verify
+  changed_when: false
+
+- name: Output Nagios verification summary
+  ansible.builtin.debug:
+    msg: "Nagios syntax verification successful (0 errors, 0 warnings)"
+  when: "'Total Warnings: 0' in nagios_verify.stdout and 'Total Errors:   0' in nagios_verify.stdout"
+
+- name: Ensure Apache2 service is running and enabled
+  ansible.builtin.service:
+    name: apache2
+    state: started
+    enabled: yes
+
+- name: Ensure Nagios4 service is running and enabled
+  ansible.builtin.service:
+    name: nagios4
+    state: started
+    enabled: yes
