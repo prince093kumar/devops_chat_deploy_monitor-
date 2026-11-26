@@ -75,20 +75,20 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: 'dockerhub',
-                    usernameVariable: 'DH_USER',
-                    passwordVariable: 'DH_PASS'
+                    usernameVariable: 'DOCKERHUB_USERNAME',
+                    passwordVariable: 'DOCKERHUB_TOKEN'
                 )]) {
                     script {
-                        env.RESOLVED_DOCKERHUB_USER = env.DH_USER
+                        env.RESOLVED_DOCKERHUB_USER = env.DOCKERHUB_USERNAME
                         if (isUnix()) {
                             sh '''
                                 set -e
-                                echo "$DH_PASS" | docker login -u "$DH_USER" --password-stdin
+                                echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
                                 build_and_push() {
                                     local svc_name="$1"
                                     local context_dir="$2"
-                                    local repo="${DH_USER}/microchat-${svc_name}"
+                                    local repo="${DOCKERHUB_USERNAME}/microchat-${svc_name}"
                                     echo "Building ${repo}:${IMAGE_TAG} from ${context_dir}"
                                     docker build -t "${repo}:${IMAGE_TAG}" -t "${repo}:latest" "${context_dir}"
                                     docker push "${repo}:${IMAGE_TAG}"
@@ -104,7 +104,7 @@ pipeline {
                             '''
                         } else {
                             powershell '''
-                                $env:DH_PASS | docker login -u $env:DH_USER --password-stdin
+                                $env:DOCKERHUB_TOKEN | docker login -u $env:DOCKERHUB_USERNAME --password-stdin
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
                                 $services = @(
@@ -115,7 +115,7 @@ pipeline {
                                 )
 
                                 foreach ($svc in $services) {
-                                    $repo = "$($env:DH_USER)/microchat-$($svc.Name)"
+                                    $repo = "$($env:DOCKERHUB_USERNAME)/microchat-$($svc.Name)"
                                     Write-Host "Building ${repo}:$($env:IMAGE_TAG) from $($svc.Dir)"
                                     docker build -t "${repo}:$($env:IMAGE_TAG)" -t "${repo}:latest" $svc.Dir
                                     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
