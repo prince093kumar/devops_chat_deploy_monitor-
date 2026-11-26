@@ -108,8 +108,16 @@ pipeline {
                                 $dhUser = $env:DOCKERHUB_USERNAME.Trim()
                                 $dhToken = $env:DOCKERHUB_TOKEN.Trim()
                                 Write-Host "Logging in to Docker Hub as: $dhUser"
-                                $dhToken | docker login -u $dhUser --password-stdin
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                $psi = New-Object System.Diagnostics.ProcessStartInfo
+                                $psi.FileName = "docker"
+                                $psi.Arguments = "login -u $dhUser --password-stdin"
+                                $psi.RedirectStandardInput = $true
+                                $psi.UseShellExecute = $false
+                                $proc = [System.Diagnostics.Process]::Start($psi)
+                                $proc.StandardInput.Write($dhToken)
+                                $proc.StandardInput.Close()
+                                $proc.WaitForExit()
+                                if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
 
                                 $services = @(
                                     @{ Name = "gateway";              Dir = "app-src/gateway" },
