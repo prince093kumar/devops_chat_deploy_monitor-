@@ -1,7 +1,7 @@
 variable "aws_region" {
   description = "AWS region where resources will be provisioned"
   type        = string
-  default     = "us-east-1"
+  default     = "ap-south-1"
 }
 
 variable "project_name" {
@@ -17,9 +17,9 @@ variable "environment" {
 }
 
 variable "app_instance_type" {
-  description = "EC2 instance type for the Microservices App Server (minimum 2GB RAM recommended for Docker builds)"
+  description = "EC2 instance type for the Microservices App Server (minimum 2GB RAM recommended; t3.small is Free Tier eligible)"
   type        = string
-  default     = "t3.medium"
+  default     = "t3.small"
 }
 
 variable "monitoring_instance_type" {

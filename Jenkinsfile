@@ -31,7 +31,7 @@ pipeline {
 
     environment {
         IMAGE_TAG                 = "build-${env.BUILD_NUMBER}"
-        AWS_DEFAULT_REGION        = 'us-east-1'
+        AWS_DEFAULT_REGION        = 'ap-south-1'
         ANSIBLE_HOST_KEY_CHECKING = 'False'
         TF_IN_AUTOMATION          = 'true'
     }

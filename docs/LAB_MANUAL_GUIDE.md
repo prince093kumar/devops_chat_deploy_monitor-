@@ -25,7 +25,7 @@ Ensure your AWS Access Key ID and Secret Access Key have permissions for EC2, VP
 aws configure
 # AWS Access Key ID [None]: AKIAIOSFODNN7EXAMPLE
 # AWS Secret Access Key [None]: wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
-# Default region name [None]: us-east-1
+# Default region name [None]: ap-south-1
 # Default output format [None]: json
 ```
 
