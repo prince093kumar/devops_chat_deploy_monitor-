@@ -221,7 +221,7 @@ pipeline {
                         '''
                     } else {
                         powershell '''
-                            $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
+                            $wslRoot = "/mnt/$($env:WORKSPACE.Substring(0,1).ToLower())$($env:WORKSPACE.Substring(2).Replace('\\', '/'))"
                             $srcKey = "$wslRoot/ansible/id_rsa_devops"
                             $wslKey = "/tmp/id_rsa_devops_jenkins"
                             wsl -d Ubuntu -e bash -c "cp '$srcKey' '$wslKey' && chmod 600 '$wslKey'"
@@ -277,10 +277,10 @@ pipeline {
                     } else {
                         withEnv(["TARGET_DH_USER=${dhUser}", "TARGET_IMG_TAG=${imgTag}"]) {
                             powershell '''
-                                $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
+                                $wslRoot = "/mnt/$($env:WORKSPACE.Substring(0,1).ToLower())$($env:WORKSPACE.Substring(2).Replace('\\', '/'))"
                                 $wslAnsible = "$wslRoot/ansible"
                                 $wslKey = "/tmp/id_rsa_devops_jenkins"
-                                $cmd = "set -e; cp '$wslAnsible/id_rsa_devops' '$wslKey' && chmod 600 '$wslKey'; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml --private-key='$wslKey' -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
+                                $cmd = "set -e; sed -i 's/\\r$//' '$wslAnsible/roles/nrpe_client/templates/check_docker_containers.sh.j2'; cp '$wslAnsible/id_rsa_devops' '$wslKey' && chmod 600 '$wslKey'; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml --private-key='$wslKey' -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
                                 wsl -d Ubuntu -e bash -c $cmd
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                             '''
@@ -305,8 +305,8 @@ pipeline {
                         '''
                     } else {
                         powershell '''
-                            $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
-                            $cmd = "set -e; cd '$wslRoot' && chmod +x scripts/*.sh && ./scripts/test_endpoints.sh && ./scripts/verify_nagios.sh"
+                            $wslRoot = "/mnt/$($env:WORKSPACE.Substring(0,1).ToLower())$($env:WORKSPACE.Substring(2).Replace('\\', '/'))"
+                            $cmd = "set -e; cd '$wslRoot' && sed -i 's/\\r$//' scripts/*.sh && chmod +x scripts/*.sh && ./scripts/test_endpoints.sh && ./scripts/verify_nagios.sh"
                             wsl -d Ubuntu -e bash -c $cmd
                             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                         '''
