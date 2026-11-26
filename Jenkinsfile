@@ -79,11 +79,12 @@ pipeline {
                     passwordVariable: 'DOCKERHUB_TOKEN'
                 )]) {
                     script {
-                        env.RESOLVED_DOCKERHUB_USER = env.DOCKERHUB_USERNAME
+                        env.RESOLVED_DOCKERHUB_USER = env.DOCKERHUB_USERNAME?.trim()
                         if (isUnix()) {
                             sh '''
                                 set -e
-                                echo "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+                                echo "Logging in to Docker Hub as: ${DOCKERHUB_USERNAME}"
+                                printf '%s' "$DOCKERHUB_TOKEN" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
 
                                 build_and_push() {
                                     local svc_name="$1"
@@ -104,7 +105,10 @@ pipeline {
                             '''
                         } else {
                             powershell '''
-                                $env:DOCKERHUB_TOKEN | docker login -u $env:DOCKERHUB_USERNAME --password-stdin
+                                $dhUser = $env:DOCKERHUB_USERNAME.Trim()
+                                $dhToken = $env:DOCKERHUB_TOKEN.Trim()
+                                Write-Host "Logging in to Docker Hub as: $dhUser"
+                                $dhToken | docker login -u $dhUser --password-stdin
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
                                 $services = @(
@@ -115,7 +119,7 @@ pipeline {
                                 )
 
                                 foreach ($svc in $services) {
-                                    $repo = "$($env:DOCKERHUB_USERNAME)/microchat-$($svc.Name)"
+                                    $repo = "${dhUser}/microchat-$($svc.Name)"
                                     Write-Host "Building ${repo}:$($env:IMAGE_TAG) from $($svc.Dir)"
                                     docker build -t "${repo}:$($env:IMAGE_TAG)" -t "${repo}:latest" $svc.Dir
                                     if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
