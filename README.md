@@ -1,30 +1,26 @@
 # Automated Deployment and Monitoring of a Microservices-Based Chat Application
 
-[![Terraform](https://img.shields.io/badge/Terraform-1.x-623CE4?logo=terraform&logoColor=white)](https://www.terraform.io/)
-[![Ansible](https://img.shields.io/badge/Ansible-2.15+-EE0000?logo=ansible&logoColor=white)](https://www.ansible.com/)
-[![Docker](https://img.shields.io/badge/Docker-24+-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![Nagios](https://img.shields.io/badge/Nagios-Core_4.x-000000?logo=nagios&logoColor=white)](https://www.nagios.org/)
-[![AWS](https://img.shields.io/badge/AWS-EC2-FF9900?logo=amazon-aws&logoColor=white)](https://aws.amazon.com/)
-
 > **Course:** DevOps Advance Configuration Management | B.Tech 7th Semester  
 > **Author:** Prince Kumar  
 > **Chat Application Repository:** [prince093kumar/winter_pep_final_project](https://github.com/prince093kumar/winter_pep_final_project)
 
 ---
 
-## 📖 Executive Summary
+## Executive Summary
 
 Modern enterprise software systems demand agility, reliability, and continuous observability. Manually provisioning servers, configuring dependencies, and monitoring distributed services introduces configuration inconsistencies and delayed fault detection.
 
-This project delivers a complete, end-to-end DevOps automation pipeline:
-1. **Terraform (Infrastructure as Code):** Provisions cloud infrastructure on AWS (EC2 instances, security groups, SSH keys) and automatically synthesizes the dynamic Ansible inventory.
-2. **Ansible (Configuration Management):** Connects to the cloud instances, configures system prerequisites, installs Docker & Docker Compose, deploys the microservices chat application, and installs Nagios Core with NRPE.
-3. **Nagios Core (Continuous Monitoring):** Continuously monitors server availability, system resources (disk space, CPU load), Docker daemon health, and application HTTP endpoints.
-4. **Controlled Failure Injection & Recovery:** Provides automated scripts to simulate container outages, demonstrate Nagios failure detection, and restore healthy operations.
+This project delivers a complete, end-to-end 5-tool DevOps automation pipeline (`Jenkins → Docker Hub → Terraform → Ansible → Nagios`):
+1. **Jenkins (CI/CD Orchestrator):** Clones the application source, builds backend microservice images, and orchestrates provisioning, deployment, and verification via `Jenkinsfile`.
+2. **Docker Hub (Container Registry):** Stores versioned backend microservice images (`gateway`, `auth-service`, `chat-service`, `notification-service`) pushed by Jenkins and pulled by Ansible onto EC2.
+3. **Terraform (Infrastructure as Code):** Provisions cloud infrastructure on AWS (EC2 instances, security groups, SSH keys) and automatically synthesizes the dynamic Ansible inventory.
+4. **Ansible (Configuration Management):** Connects to the cloud instances, installs Docker & Compose, pulls pre-built backend images from Docker Hub, builds the React client with the dynamic server IP, and installs Nagios Core with NRPE.
+5. **Nagios Core (Continuous Monitoring):** Continuously monitors server availability, system resources (disk space, CPU load), Docker daemon health, and application HTTP endpoints.
+6. **Controlled Failure Injection & Recovery:** Provides automated scripts to simulate container outages, demonstrate Nagios failure detection, and restore healthy operations.
 
 ---
 
-## 🏛️ System Architecture
+## System Architecture
 
 ```mermaid
 flowchart TD
@@ -65,9 +61,10 @@ flowchart TD
 
 ---
 
-## 📁 Repository Structure
+## Repository Structure
 
 ```
+├── Jenkinsfile                     # Master CI/CD pipeline (Jenkins -> Docker Hub -> Terraform -> Ansible -> Nagios)
 ├── terraform/                      # Infrastructure as Code
 │   ├── versions.tf                 # Required providers (AWS, TLS, Local)
 │   ├── variables.tf                # Input variables & instance sizing
@@ -91,16 +88,13 @@ flowchart TD
 │   ├── site.yml                    # Master orchestration playbook
 │   ├── deploy-app.yml              # App-only redeploy playbook
 │   └── configure-nagios.yml        # Nagios-only reconfigure playbook
-├── scripts/                        # Automation & Testing CLI Utilities
-│   ├── deploy.sh                   # Master one-click deployment (Linux/WSL)
-│   ├── deploy.ps1                  # Master one-click deployment (Windows PowerShell)
+├── scripts/                        # Verification & Failure-Demo Utilities
 │   ├── test_endpoints.sh           # Microservices & Nagios health tester
 │   ├── simulate_failure.sh         # Injects controlled failure for demonstration
 │   ├── recover_service.sh          # Restores stopped containers
-│   ├── verify_nagios.sh            # Runs CLI checks directly on monitoring server
-│   ├── destroy.sh                  # Tears down AWS resources (Bash)
-│   └── destroy.ps1                 # Tears down AWS resources (PowerShell)
+│   └── verify_nagios.sh            # Runs CLI checks directly on monitoring server
 ├── docs/                           # Detailed Documentation
+│   ├── JENKINS_PIPELINE_GUIDE.md   # Jenkins + Docker Hub CI/CD setup guide
 │   ├── ARCHITECTURE.md             # Deep-dive architecture & dataflow diagrams
 │   ├── LAB_MANUAL_GUIDE.md         # Step-by-step reproduction guide
 │   ├── TESTING_AND_VERIFICATION.md # Test cases matrix & failure logs
@@ -110,7 +104,7 @@ flowchart TD
 
 ---
 
-## 🚀 Quick Start Guide
+## Quick Start Guide
 
 ### Step 1: Configure AWS CLI Credentials
 Ensure your local machine or WSL Ubuntu has valid AWS credentials:
@@ -118,29 +112,20 @@ Ensure your local machine or WSL Ubuntu has valid AWS credentials:
 aws configure
 ```
 
-### Step 2: One-Click Automated Deployment
+### Step 2: Automated CI/CD Deployment (Jenkins → Docker Hub → Terraform → Ansible → Nagios)
 
-#### On WSL Ubuntu / Linux:
-```bash
-chmod +x scripts/*.sh
-./scripts/deploy.sh
-```
+See [Jenkins Pipeline Guide](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/JENKINS_PIPELINE_GUIDE.md) to configure your `dockerhub-creds` credential in Jenkins (`http://localhost:8080`) and trigger `Jenkinsfile` with `ACTION = deploy`.
 
-#### On Windows PowerShell:
-```powershell
-.\scripts\deploy.ps1
-```
-
-The script automatically executes:
-1. `terraform init` and `terraform apply` to create EC2 instances and Security Groups.
-2. Generates `ansible/inventory/hosts.ini` with provisioned public IP addresses.
+The pipeline automatically executes:
+1. Clones `winter_pep_final_project` and builds/pushes the 4 backend microservice images to Docker Hub.
+2. Runs `terraform init`, `terraform plan`, and `terraform apply` to provision EC2 instances, Security Groups, and `ansible/inventory/hosts.ini`.
 3. Waits for SSH availability on both servers.
-4. Executes `ansible-playbook -i inventory/hosts.ini site.yml`.
-5. Verifies all service endpoints and prints access URLs.
+4. Executes `ansible-playbook -i inventory/hosts.ini site.yml` (pulling backend images from Docker Hub, building React `client` with the new EC2 IP, and configuring Nagios Core + NRPE).
+5. Runs `scripts/test_endpoints.sh` and `scripts/verify_nagios.sh` and prints all live access URLs.
 
 ---
 
-## 🌐 Access Endpoints & Default Credentials
+## Access Endpoints & Default Credentials
 
 | Component | URL | Default Credentials | Description |
 | :--- | :--- | :--- | :--- |
@@ -150,7 +135,7 @@ The script automatically executes:
 
 ---
 
-## 🧪 Testing & Failure Demonstration
+## Testing & Failure Demonstration
 
 To satisfy project evaluation and viva requirements:
 
@@ -174,22 +159,21 @@ Restarts stopped containers. Observe the service returning to **`OK`** in Nagios
 
 ---
 
-## 🧹 Resource Teardown
+## Resource Teardown
 
-To avoid incurring cloud charges after your demo:
-```bash
-./scripts/destroy.sh
-```
-Or on PowerShell:
+To avoid incurring cloud charges after your demo, run the Jenkins pipeline with **`ACTION = destroy`**, or run manually from `terraform/`:
 ```powershell
-.\scripts\destroy.ps1
+cd terraform
+terraform destroy -auto-approve
 ```
 
 ---
 
-## 📚 Project Documentation
+## Project Documentation
 
+- [Jenkins CI/CD Pipeline Guide](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/JENKINS_PIPELINE_GUIDE.md)
 - [Architecture & Dataflow Design](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/ARCHITECTURE.md)
 - [Laboratory Reproduction Manual](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/LAB_MANUAL_GUIDE.md)
 - [Testing Matrix & Verification](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/TESTING_AND_VERIFICATION.md)
 - [Top 30 Viva Questions & Answers](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/VIVA_QUESTIONS.md)
+

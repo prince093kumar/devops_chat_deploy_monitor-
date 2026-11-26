@@ -19,6 +19,12 @@ redis_port: 6379
 jwt_secret: "supersecretkey"
 jwt_expires_in: "24h"
 
+# Docker Hub CI/CD Settings (overridden by Jenkins pipeline via -e flags)
+use_dockerhub_images: false
+dockerhub_username: "your_dockerhub_username"
+docker_image_tag: "latest"
+
 # NRPE configuration on App Server
 nrpe_port: 5666
 nrpe_allowed_hosts: "127.0.0.1,::1,{{ monitoring_server_public_ip }},{{ monitoring_server_private_ip | default('') }}"
+

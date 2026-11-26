@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# ==============================================================================
 # Nagios NRPE Plugin: Check Chat Microservice Containers
-# ==============================================================================
 
 REQUIRED_CONTAINERS=("chat_mongodb" "chat_redis" "auth_service" "chat_service" "notification_service" "api_gateway" "chat_client")
 MISSING=()
@@ -29,3 +27,4 @@ fi
 TOTAL=${#REQUIRED_CONTAINERS[@]}
 echo "OK - All $TOTAL chat microservice containers are running healthy (${REQUIRED_CONTAINERS[*]})"
 exit 0
+

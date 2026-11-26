@@ -39,3 +39,4 @@
     name: nagios-nrpe-server
     state: started
     enabled: yes
+

@@ -73,3 +73,4 @@
     opts: sw
     state: present
   when: configure_swap | default(true)
+

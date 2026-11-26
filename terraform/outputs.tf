@@ -37,3 +37,4 @@ output "ssh_private_key_file" {
   description = "Path to the SSH private key used to connect to instances"
   value       = local.ssh_key_path
 }
+

@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# ==============================================================================
 # Controlled Failure Injection Script (For Testing, Demonstration & Viva)
 # Objective: Stop a microservice container and observe Nagios alerting CRITICAL
-# ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -25,7 +23,7 @@ APP_IP=$(grep -E '^app-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}'
 MONITORING_IP=$(grep -E '^monitoring-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}' | awk '{print $1}')
 
 echo -e "${RED}======================================================================${NC}"
-echo -e "${YELLOW}           ⚠️   CONTROLLED MICROSERVICES FAILURE SIMULATION           ${NC}"
+echo -e "${YELLOW}           CONTROLLED MICROSERVICES FAILURE SIMULATION           ${NC}"
 echo -e "${RED}======================================================================${NC}"
 echo -e "Target App Server: ${CYAN}$APP_IP${NC}"
 echo -e "Monitoring Server: ${CYAN}http://$MONITORING_IP/nagios4/${NC}"
@@ -74,14 +72,15 @@ case $choice in
         ;;
 esac
 
-echo -e "\n${GREEN}✔ Failure successfully injected!${NC}"
+echo -e "\n${GREEN}[OK] Failure successfully injected!${NC}"
 echo -e "----------------------------------------------------------------------"
-echo -e "🔍 What to observe now in Nagios:"
+echo -e "What to observe now in Nagios:"
 echo -e "  1. Open the Nagios Dashboard: ${CYAN}http://$MONITORING_IP/nagios4/${NC}"
 echo -e "  2. Go to ${YELLOW}'Services'${NC} on the left navigation bar."
 echo -e "  3. The following check(s) will transition from [${GREEN}OK${NC}] -> [${RED}CRITICAL${NC}]:"
-echo -e "     👉 ${RED}$TARGET_CHECK${NC}"
+echo -e "     -> ${RED}$TARGET_CHECK${NC}"
 echo -e "----------------------------------------------------------------------"
 echo -e "To restore the system back to healthy state, run:"
-echo -e "  👉 ${GREEN}./scripts/recover_service.sh${NC}"
+echo -e "  -> ${GREEN}./scripts/recover_service.sh${NC}"
 echo -e "======================================================================\n"
+

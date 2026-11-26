@@ -1,8 +1,6 @@
 #!/usr/bin/env bash
-# ==============================================================================
 # Service Recovery Script (For Testing, Demonstration & Viva)
 # Objective: Restart stopped containers and restore all services to OK status
-# ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -25,7 +23,7 @@ APP_IP=$(grep -E '^app-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}'
 MONITORING_IP=$(grep -E '^monitoring-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}' | awk '{print $1}')
 
 echo -e "${BLUE}======================================================================${NC}"
-echo -e "${GREEN}             🔄   MICROSERVICES RECOVERY ORCHESTRATION                ${NC}"
+echo -e "${GREEN}             MICROSERVICES RECOVERY ORCHESTRATION                ${NC}"
 echo -e "${BLUE}======================================================================${NC}"
 echo -e "Target App Server: ${CYAN}$APP_IP${NC}"
 
@@ -43,12 +41,13 @@ sleep 5
 echo -e "\n${YELLOW}Current container status on App Server:${NC}"
 $SSH_CMD "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}'"
 
-echo -e "\n${GREEN}✔ All microservices restarted successfully!${NC}"
+echo -e "\n${GREEN}[OK] All microservices restarted successfully!${NC}"
 echo -e "----------------------------------------------------------------------"
-echo -e "🔍 What to observe in Nagios:"
+echo -e "What to observe in Nagios:"
 echo -e "  1. Open Nagios Dashboard: ${CYAN}http://$MONITORING_IP/nagios4/${NC}"
 echo -e "  2. Go to 'Services' -> Observe the state transition back from [${RED}CRITICAL${NC}] -> [${GREEN}OK${NC}]!"
 echo -e "----------------------------------------------------------------------"
 echo -e "Run health check to verify endpoints:"
-echo -e "  👉 ${CYAN}./scripts/test_endpoints.sh${NC}"
+echo -e "  -> ${CYAN}./scripts/test_endpoints.sh${NC}"
 echo -e "${BLUE}======================================================================${NC}\n"
+

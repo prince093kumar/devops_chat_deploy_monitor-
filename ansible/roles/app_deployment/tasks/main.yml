@@ -25,13 +25,37 @@
     group: "{{ app_group }}"
     mode: '0644'
 
-- name: Build and launch all microservices containers
+- name: Pull pre-built backend & database images from Docker Hub
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml pull mongodb redis gateway auth-service chat-service notification-service
+    chdir: "{{ app_dest_dir }}"
+  become_user: "{{ app_user }}"
+  when: use_dockerhub_images | default(false) | bool
+
+- name: Build React client container with dynamic server IP
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml build client
+    chdir: "{{ app_dest_dir }}"
+  become_user: "{{ app_user }}"
+  when: use_dockerhub_images | default(false) | bool
+
+- name: Launch microservices containers using Docker Hub backend images
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --no-build
+    chdir: "{{ app_dest_dir }}"
+  become_user: "{{ app_user }}"
+  register: compose_up_pull_result
+  changed_when: "'Created' in compose_up_pull_result.stdout or 'Starting' in compose_up_pull_result.stdout or 'Recreated' in compose_up_pull_result.stdout"
+  when: use_dockerhub_images | default(false) | bool
+
+- name: Build and launch all microservices containers locally (fallback mode)
   ansible.builtin.command:
     cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d --build
     chdir: "{{ app_dest_dir }}"
   become_user: "{{ app_user }}"
   register: compose_up_result
   changed_when: "'Created' in compose_up_result.stdout or 'Starting' in compose_up_result.stdout or 'Recreated' in compose_up_result.stdout or 'Building' in compose_up_result.stdout"
+  when: not (use_dockerhub_images | default(false) | bool)
 
 - name: Wait for API Gateway to become responsive on port 5000
   ansible.builtin.uri:
@@ -59,3 +83,4 @@
 - name: Display running microservices
   ansible.builtin.debug:
     var: docker_containers.stdout_lines
+

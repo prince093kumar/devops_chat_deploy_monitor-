@@ -19,9 +19,13 @@ ansible/id_rsa*
 ansible/inventory/hosts.ini
 ansible/*.retry
 
+# Temporary app source checkout created during Jenkins Docker builds
+app-src/
+
 # OS generated files
 .DS_Store
 Thumbs.db
 ehthumbs.db
 [Bb]in/
 [Oo]bj/
+

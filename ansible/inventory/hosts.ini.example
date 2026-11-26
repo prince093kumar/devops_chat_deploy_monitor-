@@ -20,3 +20,4 @@ app_server_public_ip=54.210.10.100
 app_server_private_ip=172.31.10.100
 monitoring_server_public_ip=54.210.10.200
 monitoring_server_private_ip=172.31.10.200
+

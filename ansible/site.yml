@@ -1,8 +1,5 @@
 ---
-# ==============================================================================
 # Master Ansible Playbook: Microservices Chat App Deployment & Nagios Monitoring
-# Course: DevOps Advance Config Management | B.Tech Semester 7
-# ==============================================================================
 
 # Play 1: Baseline system configuration on all EC2 instances
 - name: "Phase 1: Baseline Provisioning and Common Configuration"
@@ -40,14 +37,15 @@
       ansible.builtin.debug:
         msg:
           - "=============================================================================="
-          - "🚀 DEVOPS AUTOMATION DEPLOYMENT COMPLETE!"
+          - "DEVOPS AUTOMATION DEPLOYMENT COMPLETE!"
           - "=============================================================================="
-          - "💬 React Frontend Web Client : http://{{ hostvars['app-server']['ansible_host'] }}:3000"
-          - "🌐 Central API Gateway       : http://{{ hostvars['app-server']['ansible_host'] }}:5000/health"
-          - "📊 Nagios Monitoring Web UI  : http://{{ hostvars['monitoring-server']['ansible_host'] }}/nagios4/"
-          - "👤 Nagios Admin Username     : {{ hostvars['monitoring-server']['nagios_admin_user'] | default('nagiosadmin') }}"
-          - "🔑 Nagios Admin Password     : {{ hostvars['monitoring-server']['nagios_admin_password'] | default('Devops@2026') }}"
+          - "React Frontend Web Client : http://{{ hostvars['app-server']['ansible_host'] }}:3000"
+          - "Central API Gateway       : http://{{ hostvars['app-server']['ansible_host'] }}:5000/health"
+          - "Nagios Monitoring Web UI  : http://{{ hostvars['monitoring-server']['ansible_host'] }}/nagios4/"
+          - "Nagios Admin Username     : {{ hostvars['monitoring-server']['nagios_admin_user'] | default('nagiosadmin') }}"
+          - "Nagios Admin Password     : {{ hostvars['monitoring-server']['nagios_admin_password'] | default('Devops@2026') }}"
           - "=============================================================================="
           - "Run './scripts/test_endpoints.sh' to verify all microservice endpoints."
           - "Run './scripts/simulate_failure.sh' to test Nagios failure detection."
           - "=============================================================================="
+

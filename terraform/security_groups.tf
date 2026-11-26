@@ -143,3 +143,4 @@ resource "aws_security_group" "monitoring_sg" {
     Name = "${var.project_name}-monitoring-sg"
   }
 }
+

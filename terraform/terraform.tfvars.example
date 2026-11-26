@@ -25,3 +25,4 @@ public_key_path = ""
 
 # Restrict SSH CIDR block (default is unrestricted for testing/demo)
 allowed_ssh_cidr = ["0.0.0.0/0"]
+

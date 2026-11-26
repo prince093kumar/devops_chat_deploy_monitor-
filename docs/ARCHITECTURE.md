@@ -162,3 +162,4 @@ flowchart LR
    - Container starts and binds to socket within 5 seconds.
    - Next polling cycle checks return exit code `0`.
    - Nagios transitions to `RECOVERY` (`OK` - Green).
+

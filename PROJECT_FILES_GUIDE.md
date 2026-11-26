@@ -4,21 +4,21 @@ This document explains **every single folder and file** in this DevOps project i
 
 ---
 
-## 🗂️ High-Level Folder Overview
+## High-Level Folder Overview
 
 ```
 project/
-├── terraform/   👉 Provisions cloud resources on AWS (Servers, Firewalls, Keys)
-├── ansible/     👉 Configures software on servers and deploys the Chat App & Nagios
-├── scripts/     👉 Simple 1-click commands to run, test, break, and recover the app
-├── docs/        👉 Complete documentation, lab manual, test reports, and viva answers
-├── .gitignore   👉 Tells Git which temporary/secret files NOT to upload to GitHub
-└── README.md    👉 The main homepage for your GitHub project
+├── terraform/   - Provisions cloud resources on AWS (Servers, Firewalls, Keys)
+├── ansible/     - Configures software on servers and deploys the Chat App & Nagios
+├── scripts/     - Verification and failure/recovery test scripts
+├── docs/        - Complete documentation, lab manual, test reports, and viva answers
+├── .gitignore   - Tells Git which temporary/secret files NOT to upload to GitHub
+└── README.md    - The main homepage for your GitHub project
 ```
 
 ---
 
-## 1. 📁 `terraform/` (Infrastructure as Code)
+## 1. `terraform/` (Infrastructure as Code)
 *Purpose: Automatically creates your virtual servers on AWS without clicking in the AWS Console.*
 
 | File Name | Simple Explanation |
@@ -35,7 +35,7 @@ project/
 
 ---
 
-## 2. 📁 `ansible/` (Configuration Management & Deployment)
+## 2. `ansible/` (Configuration Management & Deployment)
 *Purpose: Connects to the AWS servers via SSH, installs software, clones your chat app, starts Docker, and configures Nagios.*
 
 ### Core Files & Folders
@@ -46,20 +46,20 @@ project/
 | **`deploy-app.yml`** | A mini-playbook used when you only want to re-deploy or update the chat app without touching Nagios. |
 | **`configure-nagios.yml`**| A mini-playbook used when you only want to update Nagios monitoring rules without touching the chat app. |
 
-### 📁 `ansible/inventory/` (Server Address Books)
+### `ansible/inventory/` (Server Address Books)
 | File Name | Simple Explanation |
 | :--- | :--- |
 | **`hosts.ini.example`** | A sample inventory file showing how server IPs are grouped. |
 | **`hosts.ini`** | *(Auto-generated at runtime by Terraform)*. Contains the real, live public IP addresses of your AWS servers. |
 
-### 📁 `ansible/group_vars/` (Settings & Variables)
+### `ansible/group_vars/` (Settings & Variables)
 | File Name | Simple Explanation |
 | :--- | :--- |
 | **`all.yml`** | Settings shared by all servers (e.g., adding 2GB swap space to prevent memory crashes). |
 | **`app_servers.yml`** | Chat app settings: GitHub repo URL (`winter_pep_final_project`), ports (`3000`, `5000`, etc.), and secrets. |
 | **`monitoring_servers.yml`** | Nagios settings: admin login (`nagiosadmin`), password (`Devops@2026`), and check check intervals. |
 
-### 📁 `ansible/roles/` (Modular Task Packages)
+### `ansible/roles/` (Modular Task Packages)
 
 #### A. Role: `common` (Applies to all servers)
 * **`tasks/main.yml`**: Updates Ubuntu packages, installs basic tools (`curl`, `git`, `htop`, `jq`), and creates 2GB of virtual RAM (swap space).
@@ -91,23 +91,19 @@ project/
 
 ---
 
-## 3. 📁 `scripts/` (One-Click Helper Scripts)
-*Purpose: Automates tasks so you don't have to type long terminal commands.*
+## 3. `scripts/` (Verification & Failure-Demo Scripts)
+*Purpose: Health verification and live failure/recovery demonstration scripts.*
 
 | File Name | Simple Explanation |
 | :--- | :--- |
-| **`deploy.sh`** | **Master Deployment (Bash / WSL):** Runs Terraform, generates the inventory, waits for SSH, runs Ansible, and tests everything. |
-| **`deploy.ps1`** | **Master Deployment (PowerShell):** Same as above, but tailored for Windows users. |
 | **`test_endpoints.sh`** | Tests all microservices and displays a colorful green/red status report showing response times. |
 | **`simulate_failure.sh`**| **For Viva/Demo:** Lets you choose a container to stop (e.g. `chat_service`) so you can watch Nagios turn **RED (CRITICAL)**. |
 | **`recover_service.sh`** | Restarts the stopped container and shows Nagios turning back to **GREEN (OK)**. |
 | **`verify_nagios.sh`** | Runs check plugins directly from the Nagios command line to verify raw monitoring outputs. |
-| **`destroy.sh`** | **Teardown (Bash / WSL):** Deletes all AWS servers and security groups to prevent cloud charges. |
-| **`destroy.ps1`** | **Teardown (PowerShell):** Same cleanup command for Windows PowerShell. |
 
 ---
 
-## 4. 📁 `docs/` (Project Documentation)
+## 4. `docs/` (Project Documentation)
 *Purpose: Everything needed for your B.Tech 7th semester submission, report, and oral examination.*
 
 | File Name | Simple Explanation |
@@ -127,3 +123,4 @@ project/
 | **`README.md`** | The main landing page of your project with badges, quick start, and synopsis alignment. |
 | **`.gitignore`** | Prevents private SSH keys, `.tfstate` files, and temporary caches from being uploaded to GitHub. |
 | **`PROJECT_FILES_GUIDE.md`** | *This guide!* A complete dictionary of every file in the project. |
+

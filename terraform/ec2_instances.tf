@@ -59,3 +59,4 @@ resource "aws_instance" "monitoring_server" {
     Role = "monitoring"
   }
 }
+

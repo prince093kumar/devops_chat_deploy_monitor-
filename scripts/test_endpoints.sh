@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# ==============================================================================
 # Microservices & Monitoring Endpoints Verification Script
-# ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -28,7 +26,7 @@ if [ -z "$APP_IP" ] || [ -z "$MONITORING_IP" ]; then
 fi
 
 echo -e "\n${BLUE}======================================================================${NC}"
-echo -e "${CYAN}             🔍 MICROSERVICES & NAGIOS ENDPOINTS HEALTH CHECK        ${NC}"
+echo -e "${CYAN}             MICROSERVICES & NAGIOS ENDPOINTS HEALTH CHECK             ${NC}"
 echo -e "${BLUE}======================================================================${NC}"
 echo -e "App Server IP       : $APP_IP"
 echo -e "Monitoring Server IP: $MONITORING_IP"
@@ -72,3 +70,4 @@ else
 fi
 
 echo -e "${BLUE}======================================================================${NC}"
+

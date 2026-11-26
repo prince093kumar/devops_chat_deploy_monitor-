@@ -108,3 +108,4 @@ Combining them provides end-to-end automation: Terraform creates the virtual ser
 - **Repeatability:** Environments can be spun up from scratch identically within minutes.
 - **Zero Configuration Drift:** Everything is captured in version control (Git).
 - **Reliability:** Automated continuous monitoring provides instant visibility into outages, minimizing mean time to detection (MTTD) and mean time to recovery (MTTR).
+

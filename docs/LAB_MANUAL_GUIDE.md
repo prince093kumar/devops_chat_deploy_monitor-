@@ -51,35 +51,25 @@ cd "/mnt/d/B.Tech-7 semester/Devops Advance Config Management/project"
 The repository structure:
 ```
 project/
+├── Jenkinsfile         # CI/CD pipeline (Jenkins -> Docker Hub -> Terraform -> Ansible -> Nagios)
 ├── terraform/          # Infrastructure as Code (AWS EC2, SGs, Key Pairs)
 ├── ansible/            # Configuration Management & Playbooks
 │   ├── inventory/      # Auto-generated hosts.ini
 │   ├── roles/          # common, docker, app_deployment, nrpe_client, nagios_server
 │   └── site.yml        # Master orchestration playbook
-├── scripts/            # Automation & testing shell scripts
-│   ├── deploy.sh       # Master one-click deployment
+├── scripts/            # Verification & failure-demo scripts
 │   ├── test_endpoints.sh
+│   ├── verify_nagios.sh
 │   ├── simulate_failure.sh
-│   ├── recover_service.sh
-│   └── destroy.sh
-└── docs/               # Architecture, Lab Manual, Viva Questions
+│   └── recover_service.sh
+└── docs/               # Architecture, Jenkins Guide, Lab Manual, Viva Questions
 ```
 
 ---
 
 ## 3. End-to-End Automated Deployment
 
-### Option A: One-Command Deployment (WSL Ubuntu / Linux)
-Simply execute the orchestration script:
-```bash
-./scripts/deploy.sh
-```
-
-### Option B: Windows PowerShell Deployment
-Run:
-```powershell
-.\scripts\deploy.ps1
-```
+Run the Jenkins pipeline (`Jenkinsfile`) at `http://localhost:8080` with **`ACTION = deploy`** (see [JENKINS_PIPELINE_GUIDE.md](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/JENKINS_PIPELINE_GUIDE.md)).
 
 ---
 
@@ -184,13 +174,10 @@ This experiment satisfies **Objective 5 & 7** of the project syllabus:
 
 ## 7. Cloud Resource Clean Teardown
 
-To avoid incurring ongoing AWS EC2 charges after evaluation:
-```bash
-./scripts/destroy.sh
-```
-Or manually:
+To avoid incurring ongoing AWS EC2 charges after evaluation, run the Jenkins pipeline with **`ACTION = destroy`**, or manually from `terraform/`:
 ```bash
 cd terraform
 terraform destroy -auto-approve
 ```
 Confirm all EC2 instances and security groups are terminated.
+

@@ -7,3 +7,4 @@ timezone: "UTC"
 # Automatic swapfile creation on cloud instances to protect against OOM during builds
 configure_swap: true
 swap_file_size_gb: 2
+

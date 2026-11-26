@@ -9,3 +9,4 @@ nagios_check_interval: 1          # Normal check every 1 minute
 nagios_retry_interval: 1          # Retry every 1 minute on failure
 nagios_max_check_attempts: 2      # Alert to HARD critical after 2 failed checks
 nagios_notification_interval: 30  # Re-notify every 30 minutes
+

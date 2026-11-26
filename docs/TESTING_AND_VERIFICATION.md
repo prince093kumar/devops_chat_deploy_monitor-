@@ -72,7 +72,7 @@ The failure simulation script (`./scripts/simulate_failure.sh`) demonstrates Nag
 ```text
 $ ./scripts/test_endpoints.sh
 ======================================================================
-             🔍 MICROSERVICES & NAGIOS ENDPOINTS HEALTH CHECK        
+             MICROSERVICES & NAGIOS ENDPOINTS HEALTH CHECK        
 ======================================================================
 App Server IP       : 54.210.15.42
 Monitoring Server IP: 54.210.22.88
@@ -91,3 +91,4 @@ Testing Nagios Monitoring Stack on Monitoring Server:
   Nagios Dashboard Authenticated      [ http://54.210.22.88/nagios4/ ] Status: 200  OK (Auth Valid)
 ======================================================================
 ```
+

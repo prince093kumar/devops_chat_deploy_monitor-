@@ -60,3 +60,4 @@
     msg:
       - "{{ docker_ver.stdout }}"
       - "{{ compose_ver.stdout }}"
+

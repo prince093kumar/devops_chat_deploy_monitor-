@@ -28,3 +28,4 @@ locals {
   selected_key_name = var.key_name != "" ? var.key_name : aws_key_pair.generated[0].key_name
   ssh_key_path      = var.key_name != "" ? "~/.ssh/${var.key_name}.pem" : var.private_key_output_path
 }
+

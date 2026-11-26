@@ -9,3 +9,4 @@
   ansible.builtin.service:
     name: nagios4
     state: restarted
+

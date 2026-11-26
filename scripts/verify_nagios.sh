@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
-# ==============================================================================
 # Nagios Monitoring Server Verification & Plugin Tester
-# ==============================================================================
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
@@ -24,7 +22,7 @@ APP_IP=$(grep -E '^app-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}'
 MONITORING_IP=$(grep -E '^monitoring-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}' | awk '{print $1}')
 
 echo -e "\n${BLUE}======================================================================${NC}"
-echo -e "${CYAN}        📊 NAGIOS SERVER CLI PLUGIN DIAGNOSTICS & VERIFICATION        ${NC}"
+echo -e "${CYAN}        NAGIOS SERVER CLI PLUGIN DIAGNOSTICS & VERIFICATION        ${NC}"
 echo -e "${BLUE}======================================================================${NC}"
 echo -e "Testing active check execution directly from Nagios Server ($MONITORING_IP)..."
 
@@ -55,6 +53,7 @@ echo -e "\n${YELLOW}8. Remote NRPE Microservice Containers Health Check:${NC}"
 $SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_IP -c check_chat_containers"
 
 echo -e "\n${GREEN}======================================================================${NC}"
-echo -e "${GREEN}✔ All Nagios plugins executed and verified!${NC}"
+echo -e "${GREEN}[OK] All Nagios plugins executed and verified!${NC}"
 echo -e "Web Dashboard: ${CYAN}http://$MONITORING_IP/nagios4/${NC}"
 echo -e "${GREEN}======================================================================${NC}\n"
+
