@@ -73,11 +73,12 @@ pipeline {
                 }
             }
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub',
-                    usernameVariable: 'DOCKERHUB_USERNAME',
-                    passwordVariable: 'DOCKERHUB_TOKEN'
-                )]) {
+                withCredentials([
+                    [$class: 'UsernamePasswordMultiBinding',
+                     credentialsId: 'dockerhub',
+                     usernameVariable: 'DOCKERHUB_USERNAME',
+                     passwordVariable: 'DOCKERHUB_TOKEN']
+                ]) {
                     script {
                         env.RESOLVED_DOCKERHUB_USER = env.DOCKERHUB_USERNAME?.trim()
                         if (isUnix()) {
@@ -104,38 +105,39 @@ pipeline {
                                 docker logout
                             '''
                         } else {
-                            powershell '''
-                                $dhUser = $env:DOCKERHUB_USERNAME.Trim()
-                                $dhToken = $env:DOCKERHUB_TOKEN.Trim()
-                                Write-Host "Logging in to Docker Hub as: $dhUser"
-                                $psi = New-Object System.Diagnostics.ProcessStartInfo
-                                $psi.FileName = "docker"
-                                $psi.Arguments = "login -u $dhUser --password-stdin"
-                                $psi.RedirectStandardInput = $true
-                                $psi.UseShellExecute = $false
-                                $proc = [System.Diagnostics.Process]::Start($psi)
-                                $proc.StandardInput.Write($dhToken)
-                                $proc.StandardInput.Close()
-                                $proc.WaitForExit()
-                                if ($proc.ExitCode -ne 0) { exit $proc.ExitCode }
+                            bat '''
+                                @echo off
+                                echo Logging in to Docker Hub as: %DOCKERHUB_USERNAME%
+                                echo %DOCKERHUB_TOKEN%| docker login -u %DOCKERHUB_USERNAME% --password-stdin
+                                if errorlevel 1 exit /b 1
 
-                                $services = @(
-                                    @{ Name = "gateway";              Dir = "app-src/gateway" },
-                                    @{ Name = "auth-service";         Dir = "app-src/services/auth-service" },
-                                    @{ Name = "chat-service";         Dir = "app-src/services/chat-service" },
-                                    @{ Name = "notification-service"; Dir = "app-src/services/notification-service" }
-                                )
+                                docker build -t %DOCKERHUB_USERNAME%/microchat-gateway:%IMAGE_TAG% -t %DOCKERHUB_USERNAME%/microchat-gateway:latest app-src/gateway
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-gateway:%IMAGE_TAG%
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-gateway:latest
+                                if errorlevel 1 exit /b 1
 
-                                foreach ($svc in $services) {
-                                    $repo = "${dhUser}/microchat-$($svc.Name)"
-                                    Write-Host "Building ${repo}:$($env:IMAGE_TAG) from $($svc.Dir)"
-                                    docker build -t "${repo}:$($env:IMAGE_TAG)" -t "${repo}:latest" $svc.Dir
-                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                    docker push "${repo}:$($env:IMAGE_TAG)"
-                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                    docker push "${repo}:latest"
-                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                }
+                                docker build -t %DOCKERHUB_USERNAME%/microchat-auth-service:%IMAGE_TAG% -t %DOCKERHUB_USERNAME%/microchat-auth-service:latest app-src/services/auth-service
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-auth-service:%IMAGE_TAG%
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-auth-service:latest
+                                if errorlevel 1 exit /b 1
+
+                                docker build -t %DOCKERHUB_USERNAME%/microchat-chat-service:%IMAGE_TAG% -t %DOCKERHUB_USERNAME%/microchat-chat-service:latest app-src/services/chat-service
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-chat-service:%IMAGE_TAG%
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-chat-service:latest
+                                if errorlevel 1 exit /b 1
+
+                                docker build -t %DOCKERHUB_USERNAME%/microchat-notification-service:%IMAGE_TAG% -t %DOCKERHUB_USERNAME%/microchat-notification-service:latest app-src/services/notification-service
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-notification-service:%IMAGE_TAG%
+                                if errorlevel 1 exit /b 1
+                                docker push %DOCKERHUB_USERNAME%/microchat-notification-service:latest
+                                if errorlevel 1 exit /b 1
 
                                 docker logout
                             '''
