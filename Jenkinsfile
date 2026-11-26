@@ -280,7 +280,7 @@ pipeline {
                                 $wslRoot = "/mnt/$($env:WORKSPACE.Substring(0,1).ToLower())$($env:WORKSPACE.Substring(2).Replace('\\', '/'))"
                                 $wslAnsible = "$wslRoot/ansible"
                                 $wslKey = "/tmp/id_rsa_devops_jenkins"
-                                $cmd = "set -e; sed -i 's/\\r$//' '$wslAnsible/roles/nrpe_client/templates/check_docker_containers.sh.j2'; cp '$wslAnsible/id_rsa_devops' '$wslKey' && chmod 600 '$wslKey'; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml --private-key='$wslKey' -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
+                                $cmd = "set -e; sed -i 's/\\r$//' '$wslAnsible/roles/nrpe_client/templates/check_docker_containers.sh.j2'; cp '$wslAnsible/id_rsa_devops' '$wslKey' && chmod 600 '$wslKey'; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml --private-key='$wslKey' -e 'ansible_ssh_private_key_file=$wslKey' -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
                                 wsl -d Ubuntu -e bash -c $cmd
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                             '''
