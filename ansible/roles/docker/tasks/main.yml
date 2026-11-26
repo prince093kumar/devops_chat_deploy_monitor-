@@ -45,6 +45,9 @@
     groups: docker
     append: yes
 
+- name: Reset SSH connection so ubuntu user picks up docker group membership
+  ansible.builtin.meta: reset_connection
+
 - name: Verify Docker version
   ansible.builtin.command: docker --version
   register: docker_ver

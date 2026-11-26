@@ -16,6 +16,7 @@
     name: nagios
     groups: docker
     append: yes
+  notify: restart nrpe
 
 - name: Deploy custom Docker container health check plugin script
   ansible.builtin.template:
