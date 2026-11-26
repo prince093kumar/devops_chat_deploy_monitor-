@@ -6,6 +6,10 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 INVENTORY="$PROJECT_ROOT/ansible/inventory/hosts.ini"
 KEY_FILE="$PROJECT_ROOT/ansible/id_rsa_devops"
+if [[ "$KEY_FILE" == /mnt/* ]] && [ -f "$KEY_FILE" ]; then
+    cp "$KEY_FILE" /tmp/id_rsa_devops_wsl && chmod 600 /tmp/id_rsa_devops_wsl
+    KEY_FILE="/tmp/id_rsa_devops_wsl"
+fi
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'

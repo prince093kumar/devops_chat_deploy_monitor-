@@ -165,6 +165,9 @@ pipeline {
                             env.MONITORING_IP = sh(script: 'terraform output -raw monitoring_server_public_ip', returnStdout: true).trim()
                         } else {
                             powershell '''
+                                if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
+                                    $env:PATH = "C:\\Terraform;$env:PATH"
+                                }
                                 terraform init -input=false
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                                 terraform plan -input=false
@@ -172,8 +175,8 @@ pipeline {
                                 terraform apply -auto-approve -input=false
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                             '''
-                            env.APP_IP = powershell(script: '(terraform output -raw app_server_public_ip).Trim()', returnStdout: true).trim()
-                            env.MONITORING_IP = powershell(script: '(terraform output -raw monitoring_server_public_ip).Trim()', returnStdout: true).trim()
+                            env.APP_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw app_server_public_ip).Trim()', returnStdout: true).trim()
+                            env.MONITORING_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw monitoring_server_public_ip).Trim()', returnStdout: true).trim()
                         }
                     }
                 }
@@ -213,13 +216,15 @@ pipeline {
                     } else {
                         powershell '''
                             $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
-                            $keyPath = "$wslRoot/ansible/id_rsa_devops"
-                            wsl -d Ubuntu -e chmod 600 $keyPath
+                            $srcKey = "$wslRoot/ansible/id_rsa_devops"
+                            $wslKey = "/tmp/id_rsa_devops_jenkins"
+                            wsl -d Ubuntu -e bash -c "cp '$srcKey' '$wslKey' && chmod 600 '$wslKey'"
+                            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                             foreach ($targetIp in @($env:APP_IP, $env:MONITORING_IP)) {
                                 Write-Host "Waiting for SSH on ${targetIp}:22..."
                                 $ready = $false
                                 for ($i = 1; $i -le 30; $i++) {
-                                    wsl -d Ubuntu -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -i $keyPath "ubuntu@$targetIp" "echo ready" 2>&1 | Out-Null
+                                    wsl -d Ubuntu -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -i $wslKey "ubuntu@$targetIp" "echo ready" 2>&1 | Out-Null
                                     if ($LASTEXITCODE -eq 0) {
                                         Write-Host "$targetIp SSH is ONLINE"
                                         $ready = $true
@@ -268,7 +273,8 @@ pipeline {
                             powershell '''
                                 $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
                                 $wslAnsible = "$wslRoot/ansible"
-                                $cmd = "set -e; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
+                                $wslKey = "/tmp/id_rsa_devops_jenkins"
+                                $cmd = "set -e; cp '$wslAnsible/id_rsa_devops' '$wslKey' && chmod 600 '$wslKey'; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml --private-key='$wslKey' -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
                                 wsl -d Ubuntu -e bash -c $cmd
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                             '''
@@ -318,6 +324,9 @@ pipeline {
                             '''
                         } else {
                             powershell '''
+                                if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
+                                    $env:PATH = "C:\\Terraform;$env:PATH"
+                                }
                                 terraform init -input=false
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                                 terraform destroy -auto-approve -input=false
