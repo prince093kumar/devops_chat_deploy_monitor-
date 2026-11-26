@@ -36,7 +36,7 @@ This guide explains how to configure your **Windows Jenkins** (`http://localhost
    - **Kind:** `Username with password`
    - **Username:** `<your-dockerhub-username>`
    - **Password:** `<your-dockerhub-access-token>`
-   - **ID:** `dockerhub-creds` *(must match `Jenkinsfile`)*
+   - **ID:** `dockerhub` *(must match `Jenkinsfile`)*
 3. Click **Create**.
 
 ---

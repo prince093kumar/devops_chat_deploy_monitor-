@@ -114,7 +114,7 @@ aws configure
 
 ### Step 2: Automated CI/CD Deployment (Jenkins → Docker Hub → Terraform → Ansible → Nagios)
 
-See [Jenkins Pipeline Guide](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/JENKINS_PIPELINE_GUIDE.md) to configure your `dockerhub-creds` credential in Jenkins (`http://localhost:8080`) and trigger `Jenkinsfile` with `ACTION = deploy`.
+See [Jenkins Pipeline Guide](file:///D:/B.Tech-7%20semester/Devops%20Advance%20Config%20Management/project/docs/JENKINS_PIPELINE_GUIDE.md) to configure your `dockerhub` credential in Jenkins (`http://localhost:8080`) and trigger `Jenkinsfile` with `ACTION = deploy`.
 
 The pipeline automatically executes:
 1. Clones `winter_pep_final_project` and builds/pushes the 4 backend microservice images to Docker Hub.

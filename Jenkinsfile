@@ -10,7 +10,7 @@ pipeline {
         string(
             name: 'DOCKERHUB_USER',
             defaultValue: 'your_dockerhub_username',
-            description: 'Docker Hub username (used when SKIP_IMAGE_BUILD is checked; otherwise taken from dockerhub-creds)'
+            description: 'Docker Hub username (used when SKIP_IMAGE_BUILD is checked; otherwise taken from dockerhub credential)'
         )
         string(
             name: 'APP_REPO_URL',
@@ -56,9 +56,8 @@ pipeline {
                         '''
                     } else {
                         powershell '''
-                            $ErrorActionPreference = "Stop"
                             if (Test-Path "app-src") { Remove-Item -Recurse -Force "app-src" }
-                            git clone --depth 1 --branch $env:APP_REPO_BRANCH $env:APP_REPO_URL app-src
+                            git clone --quiet --depth 1 --branch $env:APP_REPO_BRANCH $env:APP_REPO_URL app-src
                             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                         '''
                     }
@@ -75,7 +74,7 @@ pipeline {
             }
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: 'dockerhub-creds',
+                    credentialsId: 'dockerhub',
                     usernameVariable: 'DH_USER',
                     passwordVariable: 'DH_PASS'
                 )]) {
@@ -105,7 +104,6 @@ pipeline {
                             '''
                         } else {
                             powershell '''
-                                $ErrorActionPreference = "Stop"
                                 $env:DH_PASS | docker login -u $env:DH_USER --password-stdin
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
@@ -153,7 +151,6 @@ pipeline {
                             env.MONITORING_IP = sh(script: 'terraform output -raw monitoring_server_public_ip', returnStdout: true).trim()
                         } else {
                             powershell '''
-                                $ErrorActionPreference = "Stop"
                                 terraform init -input=false
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                                 terraform plan -input=false
@@ -201,7 +198,6 @@ pipeline {
                         '''
                     } else {
                         powershell '''
-                            $ErrorActionPreference = "Stop"
                             $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
                             $keyPath = "$wslRoot/ansible/id_rsa_devops"
                             wsl -d Ubuntu -e chmod 600 $keyPath
@@ -209,7 +205,7 @@ pipeline {
                                 Write-Host "Waiting for SSH on ${targetIp}:22..."
                                 $ready = $false
                                 for ($i = 1; $i -le 30; $i++) {
-                                    wsl -d Ubuntu -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -i $keyPath "ubuntu@$targetIp" "echo ready" *> $null
+                                    wsl -d Ubuntu -e ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -o ConnectTimeout=5 -i $keyPath "ubuntu@$targetIp" "echo ready" 2>&1 | Out-Null
                                     if ($LASTEXITCODE -eq 0) {
                                         Write-Host "$targetIp SSH is ONLINE"
                                         $ready = $true
@@ -218,7 +214,8 @@ pipeline {
                                     Start-Sleep -Seconds 5
                                 }
                                 if (-not $ready) {
-                                    throw "Timed out waiting for SSH on $targetIp"
+                                    Write-Error "Timed out waiting for SSH on $targetIp"
+                                    exit 1
                                 }
                             }
                         '''
@@ -236,7 +233,7 @@ pipeline {
                     def dhUser = env.RESOLVED_DOCKERHUB_USER ?: params.DOCKERHUB_USER
                     def imgTag = params.SKIP_IMAGE_BUILD ? 'latest' : env.IMAGE_TAG
                     if (!dhUser || dhUser == 'your_dockerhub_username') {
-                        error('Set DOCKERHUB_USER or configure dockerhub-creds in Jenkins before running Ansible.')
+                        error('Set DOCKERHUB_USER or configure dockerhub credentials in Jenkins before running Ansible.')
                     }
 
                     if (isUnix()) {
@@ -255,7 +252,6 @@ pipeline {
                     } else {
                         withEnv(["TARGET_DH_USER=${dhUser}", "TARGET_IMG_TAG=${imgTag}"]) {
                             powershell '''
-                                $ErrorActionPreference = "Stop"
                                 $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
                                 $wslAnsible = "$wslRoot/ansible"
                                 $cmd = "set -e; export ANSIBLE_CONFIG='$wslAnsible/ansible.cfg'; export ANSIBLE_HOST_KEY_CHECKING=False; cd '$wslAnsible' && ansible-playbook -i inventory/hosts.ini site.yml -e 'use_dockerhub_images=true' -e 'dockerhub_username=$($env:TARGET_DH_USER)' -e 'docker_image_tag=$($env:TARGET_IMG_TAG)' -e 'app_repo_url=$($env:APP_REPO_URL)' -e 'app_repo_branch=$($env:APP_REPO_BRANCH)'"
@@ -283,7 +279,6 @@ pipeline {
                         '''
                     } else {
                         powershell '''
-                            $ErrorActionPreference = "Stop"
                             $wslRoot = $env:WORKSPACE.Replace('\\', '/') -replace '^[a-zA-Z]:', { '/mnt/' + $_.Value.Substring(0,1).ToLower() }
                             $cmd = "set -e; cd '$wslRoot' && chmod +x scripts/*.sh && ./scripts/test_endpoints.sh && ./scripts/verify_nagios.sh"
                             wsl -d Ubuntu -e bash -c $cmd
@@ -309,7 +304,6 @@ pipeline {
                             '''
                         } else {
                             powershell '''
-                                $ErrorActionPreference = "Stop"
                                 terraform init -input=false
                                 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
                                 terraform destroy -auto-approve -input=false
