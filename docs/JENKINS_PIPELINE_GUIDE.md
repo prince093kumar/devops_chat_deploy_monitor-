@@ -29,15 +29,20 @@ This guide explains how to configure your **Windows Jenkins** (`http://localhost
 
 ---
 
-## 3. Configure Docker Hub Credentials in Jenkins
+## 3. Configure Docker Hub & AWS Credentials in Jenkins
 
 1. Open Jenkins (`http://localhost:8080`) -> **Manage Jenkins -> Credentials -> System -> Global credentials (unrestricted) -> Add Credentials**.
-2. Set:
+2. Add **Docker Hub** credentials:
    - **Kind:** `Username with password`
    - **Username:** `<your-dockerhub-username>`
    - **Password:** `<your-dockerhub-access-token>`
    - **ID:** `dockerhub` *(must match `Jenkinsfile`)*
-3. Click **Create**.
+3. Add **AWS** credentials:
+   - **Kind:** `Username with password`
+   - **Username:** `<your-AWS-Access-Key-ID>`
+   - **Password:** `<your-AWS-Secret-Access-Key>`
+   - **ID:** `aws-creds` *(must match `Jenkinsfile`)*
+4. Click **Create**.
 
 ---
 

@@ -152,31 +152,37 @@ pipeline {
                 expression { params.ACTION == 'deploy' }
             }
             steps {
-                dir('terraform') {
-                    script {
-                        if (isUnix()) {
-                            sh '''
-                                set -e
-                                terraform init -input=false
-                                terraform plan -input=false
-                                terraform apply -auto-approve -input=false
-                            '''
-                            env.APP_IP = sh(script: 'terraform output -raw app_server_public_ip', returnStdout: true).trim()
-                            env.MONITORING_IP = sh(script: 'terraform output -raw monitoring_server_public_ip', returnStdout: true).trim()
-                        } else {
-                            powershell '''
-                                if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
-                                    $env:PATH = "C:\\Terraform;$env:PATH"
-                                }
-                                terraform init -input=false
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                terraform plan -input=false
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                terraform apply -auto-approve -input=false
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                            '''
-                            env.APP_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw app_server_public_ip).Trim()', returnStdout: true).trim()
-                            env.MONITORING_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw monitoring_server_public_ip).Trim()', returnStdout: true).trim()
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-creds',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    dir('terraform') {
+                        script {
+                            if (isUnix()) {
+                                sh '''
+                                    set -e
+                                    terraform init -input=false
+                                    terraform plan -input=false
+                                    terraform apply -auto-approve -input=false
+                                '''
+                                env.APP_IP = sh(script: 'terraform output -raw app_server_public_ip', returnStdout: true).trim()
+                                env.MONITORING_IP = sh(script: 'terraform output -raw monitoring_server_public_ip', returnStdout: true).trim()
+                            } else {
+                                powershell '''
+                                    if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
+                                        $env:PATH = "C:\\Terraform;$env:PATH"
+                                    }
+                                    terraform init -input=false
+                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                    terraform plan -input=false
+                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                    terraform apply -auto-approve -input=false
+                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                '''
+                                env.APP_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw app_server_public_ip).Trim()', returnStdout: true).trim()
+                                env.MONITORING_IP = powershell(script: 'if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) { $env:PATH = "C:\\Terraform;$env:PATH" }; (terraform output -raw monitoring_server_public_ip).Trim()', returnStdout: true).trim()
+                            }
                         }
                     }
                 }
@@ -314,24 +320,30 @@ pipeline {
                 expression { params.ACTION == 'destroy' }
             }
             steps {
-                dir('terraform') {
-                    script {
-                        if (isUnix()) {
-                            sh '''
-                                set -e
-                                terraform init -input=false
-                                terraform destroy -auto-approve -input=false
-                            '''
-                        } else {
-                            powershell '''
-                                if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
-                                    $env:PATH = "C:\\Terraform;$env:PATH"
-                                }
-                                terraform init -input=false
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                                terraform destroy -auto-approve -input=false
-                                if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-                            '''
+                withCredentials([usernamePassword(
+                    credentialsId: 'aws-creds',
+                    usernameVariable: 'AWS_ACCESS_KEY_ID',
+                    passwordVariable: 'AWS_SECRET_ACCESS_KEY'
+                )]) {
+                    dir('terraform') {
+                        script {
+                            if (isUnix()) {
+                                sh '''
+                                    set -e
+                                    terraform init -input=false
+                                    terraform destroy -auto-approve -input=false
+                                '''
+                            } else {
+                                powershell '''
+                                    if (-not (Get-Command terraform -ErrorAction SilentlyContinue) -and (Test-Path "C:\\Terraform\\terraform.exe")) {
+                                        $env:PATH = "C:\\Terraform;$env:PATH"
+                                    }
+                                    terraform init -input=false
+                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                    terraform destroy -auto-approve -input=false
+                                    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+                                '''
+                            }
                         }
                     }
                 }
