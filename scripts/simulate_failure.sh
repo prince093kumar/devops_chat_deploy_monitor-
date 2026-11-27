@@ -42,7 +42,7 @@ echo "  6) Exit"
 echo ""
 read -p "Enter choice [1-5]: " choice
 
-SSH_CMD="ssh -o StrictHostKeyChecking=no -i $KEY_FILE ubuntu@$APP_IP"
+SSH_CMD="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $KEY_FILE ubuntu@$APP_IP"
 
 case $choice in
     1)

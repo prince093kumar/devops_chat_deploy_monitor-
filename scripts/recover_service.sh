@@ -31,7 +31,7 @@ echo -e "${GREEN}             MICROSERVICES RECOVERY ORCHESTRATION              
 echo -e "${BLUE}======================================================================${NC}"
 echo -e "Target App Server: ${CYAN}$APP_IP${NC}"
 
-SSH_CMD="ssh -o StrictHostKeyChecking=no -i $KEY_FILE ubuntu@$APP_IP"
+SSH_CMD="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $KEY_FILE ubuntu@$APP_IP"
 
 echo -e "\n${YELLOW}Ensuring Docker engine service is running...${NC}"
 $SSH_CMD "sudo systemctl start docker"

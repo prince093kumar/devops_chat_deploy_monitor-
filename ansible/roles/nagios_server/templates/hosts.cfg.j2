@@ -5,7 +5,7 @@ define host {
     use                     generic-host
     host_name               app-server
     alias                   Chat Microservices Application Server
-    address                 {{ app_server_public_ip }}
+    address                 {{ app_server_private_ip | default(app_server_public_ip) }}
     check_command           check-host-alive
     max_check_attempts      {{ nagios_max_check_attempts | default(2) }}
     check_interval          {{ nagios_check_interval | default(1) }}
@@ -14,7 +14,7 @@ define host {
     notification_interval   {{ nagios_notification_interval | default(30) }}
     notification_period     24x7
     notification_options    d,u,r
-    contact_groups          admins
+    contact_groups          microchat_admins
 }
 
 define hostgroup {

@@ -23,6 +23,8 @@ if [ ! -f "$INVENTORY" ]; then
 fi
 
 APP_IP=$(grep -E '^app-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}' | awk '{print $1}')
+APP_PRIVATE_IP=$(grep -E '^app_server_private_ip=' "$INVENTORY" | cut -d'=' -f2 | tr -d '[:space:]')
+APP_TARGET_IP="${APP_PRIVATE_IP:-$APP_IP}"
 MONITORING_IP=$(grep -E '^monitoring-server' "$INVENTORY" | awk -F'ansible_host=' '{print $2}' | awk '{print $1}')
 
 echo -e "\n${BLUE}======================================================================${NC}"
@@ -30,31 +32,31 @@ echo -e "${CYAN}        NAGIOS SERVER CLI PLUGIN DIAGNOSTICS & VERIFICATION     
 echo -e "${BLUE}======================================================================${NC}"
 echo -e "Testing active check execution directly from Nagios Server ($MONITORING_IP)..."
 
-SSH_MON="ssh -o StrictHostKeyChecking=no -i $KEY_FILE ubuntu@$MONITORING_IP"
+SSH_MON="ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i $KEY_FILE ubuntu@$MONITORING_IP"
 
 echo -e "\n${YELLOW}1. Nagios Service Daemon Status:${NC}"
 $SSH_MON "sudo systemctl status nagios4 --no-pager | head -n 8"
 
-echo -e "\n${YELLOW}2. Ping Reachability to App Server ($APP_IP):${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_ping -H $APP_IP -w 100.0,20% -c 500.0,60%"
+echo -e "\n${YELLOW}2. Ping Reachability to App Server ($APP_TARGET_IP):${NC}"
+$SSH_MON "/usr/lib/nagios/plugins/check_ping -H $APP_TARGET_IP -w 100.0,20% -c 500.0,60%"
 
 echo -e "\n${YELLOW}3. Frontend Web App HTTP Check (Port 3000):${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_http -H $APP_IP -p 3000 -u /"
+$SSH_MON "/usr/lib/nagios/plugins/check_http -H $APP_TARGET_IP -p 3000 -u /"
 
 echo -e "\n${YELLOW}4. API Gateway Health Check (Port 5000 /health):${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_http -H $APP_IP -p 5000 -u /health -s 'healthy'"
+$SSH_MON "/usr/lib/nagios/plugins/check_http -H $APP_TARGET_IP -p 5000 -u /health -s 'healthy'"
 
 echo -e "\n${YELLOW}5. Remote NRPE Disk Check:${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_IP -c check_disk"
+$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_TARGET_IP -c check_disk"
 
 echo -e "\n${YELLOW}6. Remote NRPE System Load Check:${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_IP -c check_load"
+$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_TARGET_IP -c check_load"
 
 echo -e "\n${YELLOW}7. Remote NRPE Docker Daemon Check:${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_IP -c check_docker"
+$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_TARGET_IP -c check_docker"
 
 echo -e "\n${YELLOW}8. Remote NRPE Microservice Containers Health Check:${NC}"
-$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_IP -c check_chat_containers"
+$SSH_MON "/usr/lib/nagios/plugins/check_nrpe -H $APP_TARGET_IP -c check_chat_containers"
 
 echo -e "\n${GREEN}======================================================================${NC}"
 echo -e "${GREEN}[OK] All Nagios plugins executed and verified!${NC}"
