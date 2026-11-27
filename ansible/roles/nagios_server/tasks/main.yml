@@ -124,6 +124,32 @@
     mode: '0644'
   notify: restart nagios4
 
+- name: Ensure Nagios 24x7 timeperiod config is active
+  ansible.builtin.shell: |
+    set -e
+    if [ -f /etc/nagios4/objects/timeperiods.cfg ]; then
+      sed -i 's|^#\s*\(cfg_file=/etc/nagios4/objects/timeperiods\.cfg\)|\1|' /etc/nagios4/nagios.cfg
+    fi
+    if ! grep -RqsE 'timeperiod_name[[:space:]]+24x7' /etc/nagios4/objects/ /etc/nagios4/conf.d/; then
+      cat << 'EOF' > /etc/nagios4/conf.d/microchat_timeperiods.cfg
+    define timeperiod {
+        timeperiod_name 24x7
+        alias           24 Hours A Day, 7 Days A Week
+        sunday          00:00-24:00
+        monday          00:00-24:00
+        tuesday         00:00-24:00
+        wednesday       00:00-24:00
+        thursday        00:00-24:00
+        friday          00:00-24:00
+        saturday        00:00-24:00
+    }
+    EOF
+    fi
+  args:
+    executable: /bin/bash
+  changed_when: false
+  notify: restart nagios4
+
 - name: Verify Nagios 4 configuration syntax
   ansible.builtin.command: nagios4 -v /etc/nagios4/nagios.cfg
   register: nagios_verify

@@ -3,7 +3,7 @@
 
 # Command to execute remote NRPE checks on the Application Server
 define command {
-    command_name    check_nrpe
+    command_name    check_microchat_nrpe
     command_line    /usr/lib/nagios/plugins/check_nrpe -H $HOSTADDRESS$ -c $ARG1$
 }
 

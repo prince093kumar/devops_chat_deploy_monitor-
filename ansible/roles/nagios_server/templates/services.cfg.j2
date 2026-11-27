@@ -79,7 +79,7 @@ define service {
     use                     generic-service
     host_name               app-server
     service_description     System - Disk Space (Root / via NRPE)
-    check_command           check_nrpe!check_disk
+    check_command           check_microchat_nrpe!check_disk
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
 }
@@ -89,7 +89,7 @@ define service {
     use                     generic-service
     host_name               app-server
     service_description     System - CPU Load (via NRPE)
-    check_command           check_nrpe!check_load
+    check_command           check_microchat_nrpe!check_load
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
 }
@@ -99,7 +99,7 @@ define service {
     use                     generic-service
     host_name               app-server
     service_description     Docker - Engine Daemon Status (via NRPE)
-    check_command           check_nrpe!check_docker
+    check_command           check_microchat_nrpe!check_docker
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
 }
@@ -109,7 +109,7 @@ define service {
     use                     generic-service
     host_name               app-server
     service_description     Containers - Chat Microservices Health (via NRPE)
-    check_command           check_nrpe!check_chat_containers
+    check_command           check_microchat_nrpe!check_chat_containers
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
     max_check_attempts      {{ nagios_max_check_attempts | default(2) }}
