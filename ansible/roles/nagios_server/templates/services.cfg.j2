@@ -26,7 +26,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Frontend - React Web Client (Port 3000)
+    service_description     Frontend - React Web Client Port 3000
     check_command           check_http_port_url!3000!/
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -37,7 +37,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     API Gateway - Health Endpoint (Port 5000)
+    service_description     API Gateway - Health Endpoint Port 5000
     check_command           check_http_port_string!5000!/health!healthy
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -48,7 +48,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Microservice - Auth Service (Port 5001)
+    service_description     Microservice - Auth Service Port 5001
     check_command           check_http_port_url!5001!/
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -58,7 +58,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Microservice - Chat Service (Port 5002)
+    service_description     Microservice - Chat Service Port 5002
     check_command           check_http_port_url!5002!/
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -68,7 +68,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Microservice - Notification Service (Port 5003)
+    service_description     Microservice - Notification Service Port 5003
     check_command           check_http_port_url!5003!/
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -78,7 +78,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     System - Disk Space (Root / via NRPE)
+    service_description     System - Disk Space Root via NRPE
     check_command           check_microchat_nrpe!check_disk
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -88,7 +88,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     System - CPU Load (via NRPE)
+    service_description     System - CPU Load via NRPE
     check_command           check_microchat_nrpe!check_load
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -98,7 +98,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Docker - Engine Daemon Status (via NRPE)
+    service_description     Docker - Engine Daemon Status via NRPE
     check_command           check_microchat_nrpe!check_docker
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}
@@ -108,7 +108,7 @@ define service {
 define service {
     use                     generic-service
     host_name               app-server
-    service_description     Containers - Chat Microservices Health (via NRPE)
+    service_description     Containers - Chat Microservices Health via NRPE
     check_command           check_microchat_nrpe!check_chat_containers
     check_interval          {{ nagios_check_interval | default(1) }}
     retry_interval          {{ nagios_retry_interval | default(1) }}

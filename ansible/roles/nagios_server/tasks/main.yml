@@ -150,6 +150,10 @@
   changed_when: false
   notify: restart nagios4
 
+- name: Verify Apache2 configuration syntax
+  ansible.builtin.command: apache2ctl -t
+  changed_when: false
+
 - name: Verify Nagios 4 configuration syntax
   ansible.builtin.command: nagios4 -v /etc/nagios4/nagios.cfg
   register: nagios_verify
